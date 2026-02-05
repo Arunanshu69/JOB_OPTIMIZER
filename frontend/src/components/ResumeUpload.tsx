@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { Target } from "lucide-react";
 import { motion } from 'framer-motion';
 import { Upload, FileText, Loader2 } from 'lucide-react';
 import { uploadResume, calculateMatch } from '@/lib/api';
@@ -177,7 +178,7 @@ export default function ResumeUpload({ onMatchComplete }: ResumeUploadProps) {
           {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 text-sm">
-              {error}
+              {JSON.stringify(error)}
             </div>
           )}
 

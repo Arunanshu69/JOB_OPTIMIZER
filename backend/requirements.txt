@@ -27,7 +27,6 @@ faiss-cpu==1.7.4
 
 # LLM integration
 langchain==0.1.5
-langchain-community==0.0.16
 langchain-openai==0.0.3
 openai==1.10.0
 
@@ -42,7 +41,7 @@ python-dateutil==2.8.2
 aiofiles==23.2.1
 
 # CORS
-python-cors==1.0.0
+
 
 # Testing
 pytest==7.4.4

@@ -14,6 +14,7 @@ from app.services import (
     embedding_service,
     SkillGapService
 )
+from app.services.knowledge_graph import get_graph
 from app.schemas.schemas import (
     JobDescriptionCreate,
     SkillGapAnalysisRequest,
@@ -253,13 +254,16 @@ async def generate_roadmap(payload: RoadmapGenerateRequest):
             "milestones": []
         }
         
+        graph = get_graph()
         # Choose skills to develop
         skills_to_develop = list(payload.missing_skills)
         used_role_inference = False
         if not skills_to_develop:
-            inferred = SkillExtractor.infer_skills_from_role(payload.target_role)
+            inferred = graph.get_role_skills(payload.target_role)
+            if not inferred:
+                inferred = SkillExtractor.infer_skills_from_role(payload.target_role)
             if payload.current_skills:
-                current_set = set(payload.current_skills)
+                current_set = set(graph.canonicalize_skills(payload.current_skills))
                 skills_to_develop = [s for s in inferred if s not in current_set]
             else:
                 skills_to_develop = inferred
@@ -275,17 +279,22 @@ async def generate_roadmap(payload: RoadmapGenerateRequest):
                 "Portfolio"
             ]
 
+        canonical_skills = graph.canonicalize_skills(skills_to_develop)
         if used_role_inference:
-            skills_to_develop = SkillExtractor.normalize_skills(skills_to_develop)
+            skills_to_develop = SkillExtractor.normalize_skills(canonical_skills)
+        else:
+            skills_to_develop = SkillExtractor.normalize_skills(canonical_skills)
 
-        # Distribute skills across 6 months
-        skills_per_month = max(1, len(skills_to_develop) // 6)
+        # Order skills using prereqs and distribute across 6 months
+        ordered = graph.order_skills_with_prereqs(canonical_skills)
+        ordered_display = SkillExtractor.normalize_skills(ordered)
+        skills_per_month = max(1, len(ordered_display) // 6)
         
         for month in range(1, 7):
             start_idx = (month - 1) * skills_per_month
-            end_idx = start_idx + skills_per_month if month < 6 else len(skills_to_develop)
+            end_idx = start_idx + skills_per_month if month < 6 else len(ordered_display)
             
-            month_skills = skills_to_develop[start_idx:end_idx]
+            month_skills = ordered_display[start_idx:end_idx]
             
             if month_skills:
                 roadmap["milestones"].append({
@@ -297,16 +306,17 @@ async def generate_roadmap(payload: RoadmapGenerateRequest):
                 })
         
         # Course recommendations
-        recommendations = []
-        for skill in skills_to_develop[:5]:  # Top 5 skills
-            recommendations.append({
-                "skill": skill,
-                "platform": "Coursera / NPTEL",
-                "course_name": f"{skill} Fundamentals",
-                "duration": "4-6 weeks",
-                "roi_score": 85,
-                "relevance": "High"
-            })
+        recommendations = graph.recommend_courses(ordered, limit=5)
+        if not recommendations:
+            for skill in ordered_display[:5]:
+                recommendations.append({
+                    "skill": skill,
+                    "platform": "Coursera / NPTEL",
+                    "course_name": f"{skill} Fundamentals",
+                    "duration": "4-6 weeks",
+                    "roi_score": 85,
+                    "relevance": "High"
+                })
         
         logger.info(f"Generated roadmap for {payload.target_role}")
         
@@ -314,7 +324,7 @@ async def generate_roadmap(payload: RoadmapGenerateRequest):
             "success": True,
             "roadmap": roadmap,
             "recommendations": recommendations,
-            "skills_to_develop": skills_to_develop
+            "skills_to_develop": ordered_display
         }
     
     except Exception as e:
@@ -329,11 +339,19 @@ async def alternative_careers(payload: AlternativeCareersRequest):
     try:
         if not payload.skills:
             raise HTTPException(status_code=400, detail="Skills are required")
-        alternatives = SkillExtractor.suggest_alternative_roles(
-            payload.skills,
-            exclude_role=payload.current_role,
+        graph = get_graph()
+        canonical = graph.canonicalize_skills(payload.skills)
+        alternatives = graph.suggest_alternative_roles(
+            canonical,
+            current_role=payload.current_role,
             top_k=payload.top_k or 5
         )
+        if not alternatives:
+            alternatives = SkillExtractor.suggest_alternative_roles(
+                canonical,
+                exclude_role=payload.current_role,
+                top_k=payload.top_k or 5
+            )
         return {
             "success": True,
             "alternatives": alternatives

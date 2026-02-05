@@ -1,0 +1,153 @@
+{
+  "skills": [
+    "python",
+    "javascript",
+    "typescript",
+    "react",
+    "nodejs",
+    "fastapi",
+    "django",
+    "sql",
+    "postgres",
+    "mongodb",
+    "rest_api",
+    "graphql",
+    "docker",
+    "kubernetes",
+    "aws",
+    "git",
+    "testing",
+    "system_design",
+    "data_structures",
+    "algorithms",
+    "linux",
+    "ci_cd",
+    "terraform",
+    "pandas",
+    "numpy",
+    "scikit_learn",
+    "excel",
+    "power_bi"
+  ],
+  "roles": {
+    "software_engineer": [
+      "python",
+      "javascript",
+      "sql",
+      "git",
+      "rest_api",
+      "testing",
+      "data_structures",
+      "algorithms",
+      "system_design"
+    ],
+    "backend_engineer": [
+      "python",
+      "fastapi",
+      "django",
+      "sql",
+      "postgres",
+      "rest_api",
+      "docker",
+      "git",
+      "testing"
+    ],
+    "frontend_engineer": [
+      "javascript",
+      "typescript",
+      "react",
+      "rest_api",
+      "git",
+      "testing"
+    ],
+    "full_stack_engineer": [
+      "javascript",
+      "typescript",
+      "react",
+      "nodejs",
+      "rest_api",
+      "sql",
+      "mongodb",
+      "docker",
+      "git"
+    ],
+    "data_analyst": [
+      "sql",
+      "excel",
+      "power_bi",
+      "python",
+      "pandas"
+    ],
+    "data_scientist": [
+      "python",
+      "pandas",
+      "numpy",
+      "scikit_learn",
+      "sql"
+    ],
+    "ml_engineer": [
+      "python",
+      "scikit_learn",
+      "docker",
+      "aws",
+      "rest_api"
+    ],
+    "devops_engineer": [
+      "docker",
+      "kubernetes",
+      "aws",
+      "linux",
+      "ci_cd",
+      "terraform"
+    ],
+    "cloud_engineer": [
+      "aws",
+      "linux",
+      "docker",
+      "terraform",
+      "ci_cd"
+    ]
+  },
+  "courses": [
+    {
+      "name": "Python for Developers",
+      "skills": ["python", "testing"]
+    },
+    {
+      "name": "SQL Fundamentals",
+      "skills": ["sql", "postgres"]
+    },
+    {
+      "name": "REST APIs with FastAPI",
+      "skills": ["python", "fastapi", "rest_api"]
+    },
+    {
+      "name": "React + TypeScript Essentials",
+      "skills": ["react", "typescript", "javascript"]
+    },
+    {
+      "name": "Docker for Software Engineers",
+      "skills": ["docker", "linux"]
+    },
+    {
+      "name": "Data Analysis with Pandas",
+      "skills": ["python", "pandas", "numpy"]
+    },
+    {
+      "name": "Intro to Machine Learning",
+      "skills": ["scikit_learn", "python"]
+    }
+  ],
+  "prereqs": {
+    "fastapi": ["python", "rest_api"],
+    "django": ["python"],
+    "react": ["javascript"],
+    "typescript": ["javascript"],
+    "scikit_learn": ["python", "numpy"],
+    "pandas": ["python"],
+    "docker": ["linux"],
+    "kubernetes": ["docker"],
+    "rest_api": ["python"],
+    "system_design": ["data_structures", "algorithms"]
+  }
+}

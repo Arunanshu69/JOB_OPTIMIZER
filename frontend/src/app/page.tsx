@@ -50,20 +50,46 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-6 text-sm text-gray-300"
+              className="flex items-center gap-4 text-sm text-gray-300"
             >
-              <div className="flex items-center gap-2">
-                <Upload className={`w-4 h-4 ${step === 'upload' ? 'text-indigo-400' : 'text-gray-500'}`} />
-                <span className={step === 'upload' ? 'text-indigo-400 font-medium' : ''}>Upload</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Target className={`w-4 h-4 ${step === 'results' ? 'text-indigo-400' : 'text-gray-500'}`} />
-                <span className={step === 'results' ? 'text-indigo-400 font-medium' : ''}>Analysis</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className={`w-4 h-4 ${step === 'roadmap' ? 'text-indigo-400' : 'text-gray-500'}`} />
-                <span className={step === 'roadmap' ? 'text-indigo-400 font-medium' : ''}>Roadmap</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setStep('upload')}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-colors ${
+                  step === 'upload'
+                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                <Upload className="w-4 h-4" />
+                <span className="font-medium">Upload</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep('results')}
+                disabled={!matchData}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-colors ${
+                  step === 'results'
+                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+                    : 'text-gray-400 hover:text-gray-200'
+                } ${!matchData ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <Target className="w-4 h-4" />
+                <span className="font-medium">Analysis</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep('roadmap')}
+                disabled={!roadmapData}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 transition-colors ${
+                  step === 'roadmap'
+                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+                    : 'text-gray-400 hover:text-gray-200'
+                } ${!roadmapData ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span className="font-medium">Roadmap</span>
+              </button>
             </motion.div>
           </div>
         </div>

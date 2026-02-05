@@ -21,7 +21,8 @@ from app.schemas.schemas import (
     MatchScoreResponse,
     MatchCalculateRequest,
     RoadmapGenerateRequest,
-    AlternativeCareersRequest
+    AlternativeCareersRequest,
+    CareerCounselorRequest
 )
 
 # Create database tables
@@ -360,6 +361,31 @@ async def alternative_careers(payload: AlternativeCareersRequest):
         raise
     except Exception as e:
         logger.error(f"Error suggesting alternatives: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/career/counselor")
+async def career_counselor(payload: CareerCounselorRequest):
+    """
+    Provide tailored certification recommendations with high ROI.
+    """
+    try:
+        if not payload.skills:
+            raise HTTPException(status_code=400, detail="Skills are required")
+        graph = get_graph()
+        canonical = graph.canonicalize_skills(payload.skills)
+        certs = graph.recommend_certifications(
+            canonical,
+            target_role=payload.target_role,
+            limit=payload.top_k or 5
+        )
+        return {
+            "success": True,
+            "certifications": certs
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating counseling: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

@@ -7,7 +7,13 @@ import ResumeUpload from '@/components/ResumeUpload';
 import MatchResults from '@/components/MatchResults';
 import SkillHeatmap from '@/components/SkillHeatmap';
 import LearningRoadmap from '@/components/LearningRoadmap';
-import type { MatchData, RoadmapData, CourseRecommendation, AlternativeCareer } from '@/types';
+import type {
+  MatchData,
+  RoadmapData,
+  CourseRecommendation,
+  AlternativeCareer,
+  CertificationRecommendation,
+} from '@/types';
 
 export default function Home() {
   const [step, setStep] = useState<'upload' | 'results' | 'roadmap'>('upload');
@@ -15,6 +21,7 @@ export default function Home() {
   const [roadmapData, setRoadmapData] = useState<RoadmapData | null>(null);
   const [recommendations, setRecommendations] = useState<CourseRecommendation[]>([]);
   const [alternatives, setAlternatives] = useState<AlternativeCareer[]>([]);
+  const [certifications, setCertifications] = useState<CertificationRecommendation[]>([]);
 
   const handleMatchComplete = (data: MatchData) => {
     setMatchData(data);
@@ -24,11 +31,13 @@ export default function Home() {
   const handleGenerateRoadmap = (
     roadmap: RoadmapData,
     recs: CourseRecommendation[],
-    alt: AlternativeCareer[]
+    alt: AlternativeCareer[],
+    certs: CertificationRecommendation[]
   ) => {
     setRoadmapData(roadmap);
     setRecommendations(recs);
     setAlternatives(alt);
+    setCertifications(certs);
     setStep('roadmap');
   };
 
@@ -116,6 +125,7 @@ export default function Home() {
             roadmapData={roadmapData}
             recommendations={recommendations}
             alternatives={alternatives}
+            certifications={certifications}
           />
         )}
       </div>

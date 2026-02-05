@@ -96,3 +96,8 @@ class AlternativeCareersRequest(BaseModel):
     skills: List[str]
     current_role: Optional[str] = None
     top_k: Optional[int] = 5
+
+class CareerCounselorRequest(BaseModel):
+    skills: List[str]
+    target_role: Optional[str] = None
+    top_k: Optional[int] = 5

@@ -76,3 +76,17 @@ export const getAlternativeCareers = async (
 
   return response.data;
 };
+
+export const getCareerCounseling = async (
+  skills: string[],
+  targetRole: string = '',
+  topK: number = 5
+) => {
+  const response = await api.post('/api/career/counselor', {
+    skills,
+    target_role: targetRole || undefined,
+    top_k: topK,
+  });
+
+  return response.data;
+};

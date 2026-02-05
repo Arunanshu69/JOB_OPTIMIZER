@@ -2,16 +2,23 @@
 
 import { motion } from 'framer-motion';
 import { Target, TrendingUp, Loader2, CheckCircle, XCircle, Plus } from 'lucide-react';
-import { generateRoadmap, getAlternativeCareers } from '@/lib/api';
+import { generateRoadmap, getAlternativeCareers, getCareerCounseling } from '@/lib/api';
 import { useState } from 'react';
-import type { MatchData, RoadmapData, CourseRecommendation, AlternativeCareer } from '@/types';
+import type {
+  MatchData,
+  RoadmapData,
+  CourseRecommendation,
+  AlternativeCareer,
+  CertificationRecommendation,
+} from '@/types';
 
 interface MatchResultsProps {
   matchData: MatchData;
   onGenerateRoadmap: (
     roadmap: RoadmapData,
     recommendations: CourseRecommendation[],
-    alternatives: AlternativeCareer[]
+    alternatives: AlternativeCareer[],
+    certifications: CertificationRecommendation[]
   ) => void;
 }
 
@@ -33,10 +40,12 @@ export default function MatchResults({ matchData, onGenerateRoadmap }: MatchResu
         rawSkills
       );
       const alternativesResult = await getAlternativeCareers(rawSkills, targetRole);
+      const counselorResult = await getCareerCounseling(rawSkills, targetRole);
       onGenerateRoadmap(
         result.roadmap,
         result.recommendations,
-        alternativesResult.alternatives || []
+        alternativesResult.alternatives || [],
+        counselorResult.certifications || []
       );
     } catch (error) {
       console.error('Error generating roadmap:', error);

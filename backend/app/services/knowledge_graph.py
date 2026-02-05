@@ -24,6 +24,7 @@ class KnowledgeGraph:
         self.skills = set(data.get("skills", []))
         self.roles = data.get("roles", {})
         self.courses = data.get("courses", [])
+        self.certifications = data.get("certifications", [])
         self.prereqs = data.get("prereqs", {})
 
     @classmethod
@@ -100,6 +101,37 @@ class KnowledgeGraph:
                 "duration": "4-6 weeks",
                 "roi_score": int(round(score * 100)),
                 "relevance": "High" if score >= 0.6 else "Medium"
+            })
+        return results
+
+    def recommend_certifications(
+        self,
+        skills: List[str],
+        target_role: Optional[str] = None,
+        limit: int = 5
+    ) -> List[Dict[str, object]]:
+        skills_set = set(skills)
+        role_skills = set(self.get_role_skills(target_role or ""))
+        scored = []
+        for cert in self.certifications:
+            cert_skills = set(cert.get("skills", []))
+            overlap = skills_set.intersection(cert_skills)
+            role_overlap = role_skills.intersection(cert_skills) if role_skills else set()
+            if not overlap and not role_overlap:
+                continue
+            score = (len(overlap) * 1.5 + len(role_overlap)) / max(len(cert_skills), 1)
+            scored.append((score, cert, overlap, role_overlap))
+        scored.sort(key=lambda item: item[0], reverse=True)
+        results = []
+        for score, cert, overlap, role_overlap in scored[:limit]:
+            results.append({
+                "name": cert.get("name", "Certification"),
+                "provider": cert.get("provider", "Provider"),
+                "duration": cert.get("duration", "4-6 weeks"),
+                "cost": cert.get("cost", "Medium"),
+                "roi_score": cert.get("roi_score", int(round(score * 100))),
+                "skills": self.normalize_skill_display(sorted(set(overlap).union(role_overlap))),
+                "reason": "Aligns with your current skills and target role."
             })
         return results
 

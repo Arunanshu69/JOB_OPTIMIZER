@@ -80,3 +80,13 @@ export interface AlternativeCareer {
   missing_skills: string[];
   reason: string;
 }
+
+export interface CertificationRecommendation {
+  name: string;
+  provider: string;
+  duration: string;
+  cost: string;
+  roi_score: number;
+  skills: string[];
+  reason: string;
+}

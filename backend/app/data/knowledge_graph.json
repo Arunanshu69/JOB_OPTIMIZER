@@ -138,6 +138,64 @@
       "skills": ["scikit_learn", "python"]
     }
   ],
+  "certifications": [
+    {
+      "name": "AWS Certified Cloud Practitioner",
+      "provider": "AWS",
+      "skills": ["aws", "cloud_engineering", "linux"],
+      "duration": "4-6 weeks",
+      "cost": "Low",
+      "roi_score": 88
+    },
+    {
+      "name": "AWS Certified Developer – Associate",
+      "provider": "AWS",
+      "skills": ["aws", "python", "rest_api"],
+      "duration": "6-8 weeks",
+      "cost": "Medium",
+      "roi_score": 92
+    },
+    {
+      "name": "Microsoft Azure Fundamentals (AZ-900)",
+      "provider": "Microsoft",
+      "skills": ["azure", "cloud_engineering"],
+      "duration": "3-5 weeks",
+      "cost": "Low",
+      "roi_score": 84
+    },
+    {
+      "name": "Google Cloud Digital Leader",
+      "provider": "Google",
+      "skills": ["gcp", "cloud_engineering"],
+      "duration": "3-5 weeks",
+      "cost": "Low",
+      "roi_score": 83
+    },
+    {
+      "name": "Certified Kubernetes Application Developer (CKAD)",
+      "provider": "CNCF",
+      "skills": ["kubernetes", "docker", "linux"],
+      "duration": "6-8 weeks",
+      "cost": "High",
+      "roi_score": 90
+    },
+    {
+      "name": "Meta Front-End Developer",
+      "provider": "Coursera",
+      "skills": ["javascript", "react", "html", "css"],
+      "duration": "8-12 weeks",
+      "cost": "Medium",
+      "roi_score": 86
+    },
+    {
+      "name": "IBM Data Analyst",
+      "provider": "Coursera",
+      "skills": ["sql", "excel", "power_bi", "python"],
+      "duration": "8-12 weeks",
+      "cost": "Medium",
+      "roi_score": 87
+    }
+  ],
   "prereqs": {
     "fastapi": ["python", "rest_api"],
     "django": ["python"],

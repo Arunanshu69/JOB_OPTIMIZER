@@ -2,18 +2,25 @@
 
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Award, ExternalLink } from 'lucide-react';
-import type { RoadmapData, CourseRecommendation, AlternativeCareer } from '@/types';
+import type {
+  RoadmapData,
+  CourseRecommendation,
+  AlternativeCareer,
+  CertificationRecommendation,
+} from '@/types';
 
 interface LearningRoadmapProps {
   roadmapData: RoadmapData;
   recommendations: CourseRecommendation[];
   alternatives: AlternativeCareer[];
+  certifications: CertificationRecommendation[];
 }
 
 export default function LearningRoadmap({
   roadmapData,
   recommendations,
   alternatives,
+  certifications,
 }: LearningRoadmapProps) {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -151,6 +158,53 @@ export default function LearningRoadmap({
           ))}
         </div>
       </motion.div>
+
+      {/* AI Career Counselor */}
+      {certifications.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22 }}
+          className="bg-slate-800/50 border border-indigo-800/30 rounded-xl p-8"
+        >
+          <h3 className="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+            <Award className="w-6 h-6 text-indigo-400" />
+            AI Career Counselor — High ROI Certifications
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {certifications.map((cert, idx) => (
+              <motion.div
+                key={`${cert.name}-${idx}`}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.05 * idx }}
+                className="bg-slate-900/50 rounded-lg p-6 border border-indigo-800/20"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h4 className="text-lg font-semibold text-white">{cert.name}</h4>
+                  <span className="text-sm text-indigo-300">{cert.roi_score} ROI</span>
+                </div>
+                <div className="text-sm text-gray-400 mb-2">{cert.provider}</div>
+                <div className="text-sm text-gray-400 mb-4">
+                  {cert.duration} • Cost: {cert.cost}
+                </div>
+                <p className="text-sm text-gray-400 mb-4">{cert.reason}</p>
+                <div className="flex flex-wrap gap-2">
+                  {cert.skills.map((skill, skillIdx) => (
+                    <span
+                      key={skillIdx}
+                      className="bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded-full text-xs border border-indigo-500/30"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Alternative Careers */}
       {alternatives.length > 0 && (

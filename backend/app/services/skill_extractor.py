@@ -193,6 +193,38 @@ class SkillExtractor:
         return sorted(list(inferred))
 
     @staticmethod
+    def suggest_alternative_roles(
+        skills: List[str],
+        exclude_role: str | None = None,
+        top_k: int = 5
+    ) -> List[Dict[str, object]]:
+        """
+        Suggest alternative roles based on skill overlap.
+        Expects skills as canonical keys (e.g., python, react, sql).
+        """
+        skill_set = set(skills)
+        suggestions = []
+        for role, role_skills in SkillExtractor.ROLE_SKILL_MAP.items():
+            if exclude_role and exclude_role.lower() in role:
+                continue
+            role_skill_set = set(role_skills)
+            matched = sorted(list(role_skill_set.intersection(skill_set)))
+            missing = sorted(list(role_skill_set.difference(skill_set)))
+            if not role_skill_set:
+                continue
+            match_pct = round((len(matched) / len(role_skill_set)) * 100, 2)
+            suggestions.append({
+                "role": role.title(),
+                "match_percentage": match_pct,
+                "matched_skills": SkillExtractor.normalize_skills(matched),
+                "missing_skills": SkillExtractor.normalize_skills(missing),
+                "reason": f"Matches {len(matched)} of {len(role_skill_set)} core skills."
+            })
+
+        suggestions.sort(key=lambda s: s["match_percentage"], reverse=True)
+        return suggestions[:top_k]
+
+    @staticmethod
     def _pattern_in_text(pattern: str, text_lower: str) -> bool:
         """
         Match patterns with safer boundaries than \\b so tokens like c++ work.

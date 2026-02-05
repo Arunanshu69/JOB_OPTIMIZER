@@ -51,12 +51,28 @@ export const calculateMatch = async (
 // Roadmap Generation API
 export const generateRoadmap = async (
   missingSkills: string[],
-  targetRole: string = 'Your Target Role'
+  targetRole: string = 'Your Target Role',
+  currentSkills: string[] = []
 ) => {
   const response = await api.post('/api/roadmap/generate', {
     missing_skills: missingSkills,
     target_role: targetRole,
+    current_skills: currentSkills,
   });
   
+  return response.data;
+};
+
+export const getAlternativeCareers = async (
+  skills: string[],
+  currentRole: string = '',
+  topK: number = 5
+) => {
+  const response = await api.post('/api/career/alternatives', {
+    skills,
+    current_role: currentRole || undefined,
+    top_k: topK,
+  });
+
   return response.data;
 };

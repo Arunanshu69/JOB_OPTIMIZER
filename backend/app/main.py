@@ -19,7 +19,8 @@ from app.schemas.schemas import (
     SkillGapAnalysisRequest,
     MatchScoreResponse,
     MatchCalculateRequest,
-    RoadmapGenerateRequest
+    RoadmapGenerateRequest,
+    AlternativeCareersRequest
 )
 
 # Create database tables
@@ -214,12 +215,20 @@ async def calculate_match(payload: MatchCalculateRequest):
             "match_score": match_score,
             "semantic_similarity": round(semantic_similarity * 100, 2),
             "skill_match_percentage": gap_analysis["match_percentage"],
+            "job_title": payload.job_title,
             "skill_breakdown": {
                 "resume_skills": resume_skills_normalized,
                 "required_skills": job_skills_normalized,
                 "matched_skills": [SkillExtractor.normalize_skills([s])[0] for s in gap_analysis["strong_skills"]],
                 "missing_skills": [SkillExtractor.normalize_skills([s])[0] for s in gap_analysis["missing_skills"]],
                 "additional_skills": [SkillExtractor.normalize_skills([s])[0] for s in gap_analysis["additional_skills"]]
+            },
+            "skill_breakdown_raw": {
+                "resume_skills": resume_skills,
+                "required_skills": job_skills,
+                "matched_skills": gap_analysis["strong_skills"],
+                "missing_skills": gap_analysis["missing_skills"],
+                "additional_skills": gap_analysis["additional_skills"]
             },
             "heatmap_data": heatmap_data,
             "explanation": explanation
@@ -244,14 +253,39 @@ async def generate_roadmap(payload: RoadmapGenerateRequest):
             "milestones": []
         }
         
+        # Choose skills to develop
+        skills_to_develop = list(payload.missing_skills)
+        used_role_inference = False
+        if not skills_to_develop:
+            inferred = SkillExtractor.infer_skills_from_role(payload.target_role)
+            if payload.current_skills:
+                current_set = set(payload.current_skills)
+                skills_to_develop = [s for s in inferred if s not in current_set]
+            else:
+                skills_to_develop = inferred
+            used_role_inference = True
+
+        if not skills_to_develop:
+            skills_to_develop = [
+                "System Design",
+                "Project Building",
+                "Testing",
+                "Cloud Fundamentals",
+                "Interview Preparation",
+                "Portfolio"
+            ]
+
+        if used_role_inference:
+            skills_to_develop = SkillExtractor.normalize_skills(skills_to_develop)
+
         # Distribute skills across 6 months
-        skills_per_month = max(1, len(payload.missing_skills) // 6)
+        skills_per_month = max(1, len(skills_to_develop) // 6)
         
         for month in range(1, 7):
             start_idx = (month - 1) * skills_per_month
-            end_idx = start_idx + skills_per_month if month < 6 else len(payload.missing_skills)
+            end_idx = start_idx + skills_per_month if month < 6 else len(skills_to_develop)
             
-            month_skills = payload.missing_skills[start_idx:end_idx]
+            month_skills = skills_to_develop[start_idx:end_idx]
             
             if month_skills:
                 roadmap["milestones"].append({
@@ -264,7 +298,7 @@ async def generate_roadmap(payload: RoadmapGenerateRequest):
         
         # Course recommendations
         recommendations = []
-        for skill in payload.missing_skills[:5]:  # Top 5 skills
+        for skill in skills_to_develop[:5]:  # Top 5 skills
             recommendations.append({
                 "skill": skill,
                 "platform": "Coursera / NPTEL",
@@ -279,11 +313,35 @@ async def generate_roadmap(payload: RoadmapGenerateRequest):
         return {
             "success": True,
             "roadmap": roadmap,
-            "recommendations": recommendations
+            "recommendations": recommendations,
+            "skills_to_develop": skills_to_develop
         }
     
     except Exception as e:
         logger.error(f"Error generating roadmap: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/career/alternatives")
+async def alternative_careers(payload: AlternativeCareersRequest):
+    """
+    Suggest alternative careers based on current skills.
+    """
+    try:
+        if not payload.skills:
+            raise HTTPException(status_code=400, detail="Skills are required")
+        alternatives = SkillExtractor.suggest_alternative_roles(
+            payload.skills,
+            exclude_role=payload.current_role,
+            top_k=payload.top_k or 5
+        )
+        return {
+            "success": True,
+            "alternatives": alternatives
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error suggesting alternatives: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

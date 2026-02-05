@@ -90,3 +90,9 @@ class MatchCalculateRequest(BaseModel):
 class RoadmapGenerateRequest(BaseModel):
     missing_skills: List[str]
     target_role: Optional[str] = "Your Target Role"
+    current_skills: Optional[List[str]] = None
+
+class AlternativeCareersRequest(BaseModel):
+    skills: List[str]
+    current_role: Optional[str] = None
+    top_k: Optional[int] = 5

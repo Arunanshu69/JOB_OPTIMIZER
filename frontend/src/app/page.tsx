@@ -7,22 +7,28 @@ import ResumeUpload from '@/components/ResumeUpload';
 import MatchResults from '@/components/MatchResults';
 import SkillHeatmap from '@/components/SkillHeatmap';
 import LearningRoadmap from '@/components/LearningRoadmap';
-import type { MatchData, RoadmapData, CourseRecommendation } from '@/types';
+import type { MatchData, RoadmapData, CourseRecommendation, AlternativeCareer } from '@/types';
 
 export default function Home() {
   const [step, setStep] = useState<'upload' | 'results' | 'roadmap'>('upload');
   const [matchData, setMatchData] = useState<MatchData | null>(null);
   const [roadmapData, setRoadmapData] = useState<RoadmapData | null>(null);
   const [recommendations, setRecommendations] = useState<CourseRecommendation[]>([]);
+  const [alternatives, setAlternatives] = useState<AlternativeCareer[]>([]);
 
   const handleMatchComplete = (data: MatchData) => {
     setMatchData(data);
     setStep('results');
   };
 
-  const handleGenerateRoadmap = (roadmap: RoadmapData, recs: CourseRecommendation[]) => {
+  const handleGenerateRoadmap = (
+    roadmap: RoadmapData,
+    recs: CourseRecommendation[],
+    alt: AlternativeCareer[]
+  ) => {
     setRoadmapData(roadmap);
     setRecommendations(recs);
+    setAlternatives(alt);
     setStep('roadmap');
   };
 
@@ -83,6 +89,7 @@ export default function Home() {
           <LearningRoadmap 
             roadmapData={roadmapData}
             recommendations={recommendations}
+            alternatives={alternatives}
           />
         )}
       </div>

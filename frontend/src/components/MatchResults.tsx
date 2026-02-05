@@ -2,13 +2,17 @@
 
 import { motion } from 'framer-motion';
 import { Target, TrendingUp, Loader2, CheckCircle, XCircle, Plus } from 'lucide-react';
-import { generateRoadmap } from '@/lib/api';
+import { generateRoadmap, getAlternativeCareers } from '@/lib/api';
 import { useState } from 'react';
-import type { MatchData, RoadmapData, CourseRecommendation } from '@/types';
+import type { MatchData, RoadmapData, CourseRecommendation, AlternativeCareer } from '@/types';
 
 interface MatchResultsProps {
   matchData: MatchData;
-  onGenerateRoadmap: (roadmap: RoadmapData, recommendations: CourseRecommendation[]) => void;
+  onGenerateRoadmap: (
+    roadmap: RoadmapData,
+    recommendations: CourseRecommendation[],
+    alternatives: AlternativeCareer[]
+  ) => void;
 }
 
 export default function MatchResults({ matchData, onGenerateRoadmap }: MatchResultsProps) {
@@ -17,11 +21,23 @@ export default function MatchResults({ matchData, onGenerateRoadmap }: MatchResu
   const handleGenerateRoadmap = async () => {
     setGenerating(true);
     try {
+      const targetRole = matchData.job_title || 'Your Target Role';
+      const rawSkills =
+        matchData.skill_breakdown_raw?.resume_skills ??
+        matchData.skill_breakdown.resume_skills.map((skill) =>
+          skill.toLowerCase().replace(/\s+/g, '_')
+        );
       const result = await generateRoadmap(
         matchData.skill_breakdown.missing_skills,
-        'Your Target Role'
+        targetRole,
+        rawSkills
       );
-      onGenerateRoadmap(result.roadmap, result.recommendations);
+      const alternativesResult = await getAlternativeCareers(rawSkills, targetRole);
+      onGenerateRoadmap(
+        result.roadmap,
+        result.recommendations,
+        alternativesResult.alternatives || []
+      );
     } catch (error) {
       console.error('Error generating roadmap:', error);
     } finally {
@@ -150,32 +166,30 @@ export default function MatchResults({ matchData, onGenerateRoadmap }: MatchResu
       </motion.div>
 
       {/* Generate Roadmap Button */}
-      {matchData.skill_breakdown.missing_skills.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-center"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="text-center"
+      >
+        <button
+          onClick={handleGenerateRoadmap}
+          disabled={generating}
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-medium px-8 py-4 rounded-lg transition-colors flex items-center justify-center gap-2 mx-auto"
         >
-          <button
-            onClick={handleGenerateRoadmap}
-            disabled={generating}
-            className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800 disabled:cursor-not-allowed text-white font-medium px-8 py-4 rounded-lg transition-colors flex items-center justify-center gap-2 mx-auto"
-          >
-            {generating ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Generating Roadmap...
-              </>
-            ) : (
-              <>
-                <TrendingUp className="w-5 h-5" />
-                Generate Learning Roadmap
-              </>
-            )}
-          </button>
-        </motion.div>
-      )}
+          {generating ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Generating Roadmap...
+            </>
+          ) : (
+            <>
+              <TrendingUp className="w-5 h-5" />
+              Generate Growth Roadmap
+            </>
+          )}
+        </button>
+      </motion.div>
     </div>
   );
 }

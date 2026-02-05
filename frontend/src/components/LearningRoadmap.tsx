@@ -2,14 +2,19 @@
 
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Award, ExternalLink } from 'lucide-react';
-import type { RoadmapData, CourseRecommendation } from '@/types';
+import type { RoadmapData, CourseRecommendation, AlternativeCareer } from '@/types';
 
 interface LearningRoadmapProps {
   roadmapData: RoadmapData;
   recommendations: CourseRecommendation[];
+  alternatives: AlternativeCareer[];
 }
 
-export default function LearningRoadmap({ roadmapData, recommendations }: LearningRoadmapProps) {
+export default function LearningRoadmap({
+  roadmapData,
+  recommendations,
+  alternatives,
+}: LearningRoadmapProps) {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
@@ -146,6 +151,63 @@ export default function LearningRoadmap({ roadmapData, recommendations }: Learni
           ))}
         </div>
       </motion.div>
+
+      {/* Alternative Careers */}
+      {alternatives.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="bg-slate-800/50 border border-indigo-800/30 rounded-xl p-8"
+        >
+          <h3 className="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+            <Award className="w-6 h-6 text-indigo-400" />
+            Alternative Career Paths
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {alternatives.map((alt, idx) => (
+              <motion.div
+                key={`${alt.role}-${idx}`}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.05 * idx }}
+                className="bg-slate-900/50 rounded-lg p-6 border border-indigo-800/20"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h4 className="text-lg font-semibold text-white">{alt.role}</h4>
+                  <span className="text-sm text-indigo-300">
+                    {alt.match_percentage}% fit
+                  </span>
+                </div>
+                <p className="text-sm text-gray-400 mb-4">{alt.reason}</p>
+                <div className="text-xs text-gray-400 mb-2">Matched Skills</div>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {alt.matched_skills.map((skill, skillIdx) => (
+                    <span
+                      key={skillIdx}
+                      className="bg-green-500/10 text-green-300 px-2 py-1 rounded-full text-xs border border-green-500/30"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-400 mb-2">Skills To Add</div>
+                <div className="flex flex-wrap gap-2">
+                  {alt.missing_skills.slice(0, 6).map((skill, skillIdx) => (
+                    <span
+                      key={skillIdx}
+                      className="bg-red-500/10 text-red-300 px-2 py-1 rounded-full text-xs border border-red-500/30"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Action Section */}
       <motion.div

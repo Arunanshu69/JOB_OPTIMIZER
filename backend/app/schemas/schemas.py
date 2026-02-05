@@ -81,3 +81,12 @@ class MatchScoreResponse(BaseModel):
     match_score: float
     skill_breakdown: Dict[str, Any]
     explanation: str
+
+class MatchCalculateRequest(BaseModel):
+    resume_text: str
+    job_description: str
+    job_title: Optional[str] = "Target Role"
+
+class RoadmapGenerateRequest(BaseModel):
+    missing_skills: List[str]
+    target_role: Optional[str] = "Your Target Role"

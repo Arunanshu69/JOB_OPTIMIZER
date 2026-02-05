@@ -16,13 +16,14 @@ export default function ResumeUpload({ onMatchComplete }: ResumeUploadProps) {
   const [jobTitle, setJobTitle] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [resumeText, setResumeText] = useState('');
+  const [error, setError] = useState<
+    string | Array<{ msg?: string }> | Record<string, unknown> | null
+  >(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
-      setError('');
+      setError(null);
     }
   };
 
@@ -30,7 +31,7 @@ export default function ResumeUpload({ onMatchComplete }: ResumeUploadProps) {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setFile(e.dataTransfer.files[0]);
-      setError('');
+      setError(null);
     }
   }, []);
 
@@ -52,13 +53,11 @@ export default function ResumeUpload({ onMatchComplete }: ResumeUploadProps) {
     }
 
     setLoading(true);
-    setError('');
+    setError(null);
 
     try {
       // Step 1: Upload and parse resume
       const resumeData = await uploadResume(file);
-      setResumeText(resumeData.extracted_text);
-
       // Step 2: Calculate match
       const matchData = await calculateMatch(
         resumeData.extracted_text,
@@ -177,10 +176,14 @@ export default function ResumeUpload({ onMatchComplete }: ResumeUploadProps) {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 text-sm">
-              {JSON.stringify(error)}
-            </div>
-          )}
+          <div className="error-box">
+            {Array.isArray(error)
+              ? error.map((e, i) => <div key={i}>{e.msg ?? 'Error'}</div>)
+              : typeof error === 'object'
+                ? JSON.stringify(error, null, 2)
+                : error}
+          </div>
+)}
 
           {/* Submit Button */}
           <button

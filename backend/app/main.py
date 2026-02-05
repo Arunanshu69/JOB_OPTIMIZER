@@ -17,7 +17,9 @@ from app.services import (
 from app.schemas.schemas import (
     JobDescriptionCreate,
     SkillGapAnalysisRequest,
-    MatchScoreResponse
+    MatchScoreResponse,
+    MatchCalculateRequest,
+    RoadmapGenerateRequest
 )
 
 # Create database tables
@@ -102,7 +104,10 @@ async def upload_resume(file: UploadFile = File(...)):
         return {
             "success": True,
             "filename": file.filename,
-            "extracted_text": cleaned_text[:500] + "..." if len(cleaned_text) > 500 else cleaned_text,
+            # Return full text for downstream matching; include a short excerpt for UI if needed.
+            "extracted_text": cleaned_text,
+            "excerpt": cleaned_text[:500] + "..." if len(cleaned_text) > 500 else cleaned_text,
+            "text_length": len(cleaned_text),
             "skills": normalized_skills,
             "skill_count": len(normalized_skills),
             "file_path": file_path,
@@ -143,11 +148,7 @@ async def analyze_job_description(job_data: JobDescriptionCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/match/calculate")
-async def calculate_match(
-    resume_text: str,
-    job_description: str,
-    job_title: Optional[str] = "Target Role"
-):
+async def calculate_match(payload: MatchCalculateRequest):
     """
     Calculate semantic match between resume and job description.
     
@@ -155,16 +156,19 @@ async def calculate_match(
     """
     try:
         # Extract text and skills from resume
-        resume_skills = SkillExtractor.extract_skills(resume_text)
+        resume_skills = SkillExtractor.extract_skills(payload.resume_text)
         resume_skills_normalized = SkillExtractor.normalize_skills(resume_skills)
         
         # Extract skills from job description
-        job_skills = SkillExtractor.extract_skills(job_description)
+        job_skills = SkillExtractor.extract_skills(payload.job_description)
+        if not job_skills:
+            role_seed = f"{payload.job_title} {payload.job_description}"
+            job_skills = SkillExtractor.infer_skills_from_role(role_seed)
         job_skills_normalized = SkillExtractor.normalize_skills(job_skills)
         
         # Generate embeddings
-        resume_embedding = embedding_service.generate_embedding(resume_text)
-        job_embedding = embedding_service.generate_embedding(job_description)
+        resume_embedding = embedding_service.generate_embedding(payload.resume_text)
+        job_embedding = embedding_service.generate_embedding(payload.job_description)
         
         if not resume_embedding or not job_embedding:
             raise HTTPException(
@@ -197,13 +201,13 @@ async def calculate_match(
         )
         
         # Generate explanation
-        explanation = f"Based on semantic analysis and skill matching, your resume has a {match_score:.1f}% compatibility with the {job_title} role. "
+        explanation = f"Based on semantic analysis and skill matching, your resume has a {match_score:.1f}% compatibility with the {payload.job_title} role. "
         explanation += f"You match {gap_analysis['skills_matched']} out of {gap_analysis['total_required_skills']} required skills. "
         
         if gap_analysis['missing_skills']:
             explanation += f"Key missing skills include: {', '.join(gap_analysis['missing_skills'][:3])}. "
         
-        logger.info(f"Match calculated: {match_score}% for {job_title}")
+        logger.info(f"Match calculated: {match_score}% for {payload.job_title}")
         
         return {
             "success": True,
@@ -228,26 +232,26 @@ async def calculate_match(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/roadmap/generate")
-async def generate_roadmap(missing_skills: list[str], target_role: str = "Your Target Role"):
+async def generate_roadmap(payload: RoadmapGenerateRequest):
     """
     Generate a 6-month learning roadmap based on missing skills.
     """
     try:
         # Simple roadmap generation (can be enhanced with LLM)
         roadmap = {
-            "target_role": target_role,
+            "target_role": payload.target_role,
             "duration_months": 6,
             "milestones": []
         }
         
         # Distribute skills across 6 months
-        skills_per_month = max(1, len(missing_skills) // 6)
+        skills_per_month = max(1, len(payload.missing_skills) // 6)
         
         for month in range(1, 7):
             start_idx = (month - 1) * skills_per_month
-            end_idx = start_idx + skills_per_month if month < 6 else len(missing_skills)
+            end_idx = start_idx + skills_per_month if month < 6 else len(payload.missing_skills)
             
-            month_skills = missing_skills[start_idx:end_idx]
+            month_skills = payload.missing_skills[start_idx:end_idx]
             
             if month_skills:
                 roadmap["milestones"].append({
@@ -260,7 +264,7 @@ async def generate_roadmap(missing_skills: list[str], target_role: str = "Your T
         
         # Course recommendations
         recommendations = []
-        for skill in missing_skills[:5]:  # Top 5 skills
+        for skill in payload.missing_skills[:5]:  # Top 5 skills
             recommendations.append({
                 "skill": skill,
                 "platform": "Coursera / NPTEL",
@@ -270,7 +274,7 @@ async def generate_roadmap(missing_skills: list[str], target_role: str = "Your T
                 "relevance": "High"
             })
         
-        logger.info(f"Generated roadmap for {target_role}")
+        logger.info(f"Generated roadmap for {payload.target_role}")
         
         return {
             "success": True,
